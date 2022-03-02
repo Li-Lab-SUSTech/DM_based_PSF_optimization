@@ -1,9 +1,15 @@
-# DM_based_PSF_optimization
+# DM_based_PSF_optimization  
+
 
 # Requirements
+Matlab R2019a or newer  
+The code runs on macOS and Microsoft Windows 7 or newer, 64-bit
 
 # How to run
-Example 
+Example codes are available in the file ***example_PSF_optim.m***, including following steps:  
+* 1 optimize the PSF using 21 Zernike modes  
+* 2 Project the Zernike pupil on the DM
+* 3 optimize the PSF using DM influence functions
 
 # Contact
 For any questions / comments about this software, please contact [Li Lab](https://faculty.sustech.edu.cn/liym2019/en/).
