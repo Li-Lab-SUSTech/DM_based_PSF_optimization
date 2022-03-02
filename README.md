@@ -1,4 +1,5 @@
 # DM_based_PSF_optimization  
+![image](https://user-images.githubusercontent.com/67769465/156370211-077ec8b0-e14c-4fde-bacb-728a9f30eb91.png)
 
 
 # Requirements
