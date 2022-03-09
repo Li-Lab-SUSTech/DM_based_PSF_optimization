@@ -38,7 +38,7 @@ FresnelS = FresnelSmedcov.*FresnelScovimm;
 
 % Apoidization for sine condition
 % apoid = sqrt(CosThetaImm)./CosThetaMed;
-apoid = 1 ./ sqrt(CosThetaImm);
+apoid = 1 ./ sqrt(CosThetaMed);
 % definition aperture
 ApertureMask = double((XPupil.^2+YPupil.^2)<1.0);
 Amplitude = ApertureMask.*apoid;
