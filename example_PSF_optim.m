@@ -3,8 +3,10 @@
 % email: liym2019@sustech.edu.cn & fus2020@mail.sustech.edu.cn
 % date: 2022.3.2
 % Tested with Matlab 2019a
-%% This example first optimizes a pupil using 21 zernike modes,then projects it on the DM 
-% and continues to optimize using DM influence functions
+%% This example first optimizes a pupil using 21 zernike modes,
+% then projects it on the DM and continues to optimize using DM influence
+% functions,considering it might be time-consuming on some PCs, here we set
+% a large z step (600nm step in 6 um range) to get a quick result.
 clear;close all;clc;
 addpath('zernike','chirp_z','optimize_psf_crlb_zernike','opt_realDM_psf_crlb','utils_funcs')
 %% define the parameters used
@@ -27,7 +29,7 @@ paraSim.aberrations = [2,-2,0.0; 2, 2,0.0; 3,-1,0.0; 3,1,0.0; 4, 0,0.0;...
                        5, 3,0.0; 6,-2,0.0; 6, 2,0.0; 7,1,0.0; 7,-1,0.0;...
                        8, 0,0.0];
 % parameters to compute the CRLB and psf model
-Nmol = 31;                              % number of discrete z positions 
+Nmol = 11;                              % number of discrete z positions 
 Npixels = 71;                           % number of pixels of the image
 Nphotons = 2000 +0*10000*rand(1,Nmol);  % photons for each PSF
 bg = 20 +0*10*rand(1,Nmol);             % background for each PSF
@@ -41,7 +43,7 @@ paraSim.yemit = ones(1,Nmol)*0;                %nm y positions of each PSF
 paraSim.zemit = linspace(-3000,3000,Nmol)*1;     %nm z positions of each PSF
 paraSim.objStage = linspace(-1000,1000,Nmol)*0;%nm objective positions of each PSF
 %% define the initial pupil using Zernike modes
-aberrations_start = [2, 2,0.0; 2, 2,60.0; 3,-1,0.0; 3,1,0.0; 4, 0,0.0;...
+aberrations_start = [2,-2,0.0; 2, 2,60.0; 3,-1,0.0; 3,1,0.0; 4, 0,0.0;...
                      3,-3,0.0; 3, 3,0.0; 4,-2,0.0; 4,2,0.0; 5,-1,0.0;...
                      5, 1,0.0; 6, 0,0.0; 4,-4,0.0; 4,4,0.0; 5,-3,0.0;...
                      5, 3,0.0; 6,-2,0.0; 6, 2,0.0; 7,1,0.0; 7,-1,0.0;...
@@ -53,7 +55,7 @@ paraSim.show = true;disp('Zernike start crlb')
 [y0,grad0] = sum_crlb_at_z(aberrations_start(:,3),paraSim);
 paraSim.show = false;
 pupil_start = Zernike_construct_pupil(aberrations_start, paraSim);
-figure;imagesc(pupil_start);title('Zernike start pupil')
+figure;imagesc(pupil_start);title('Zernike start pupil');drawnow;
 %% optimize Zernike coefficients to minimize average CRLB_3D (take miniutes to hours)
 f = @(zernike_coefs)sum_crlb_at_z(zernike_coefs,paraSim);
 % fminicon
@@ -61,7 +63,7 @@ lb = -paraSim.lambda*ones(21,1);
 ub = paraSim.lambda*ones(21,1);
 options = optimoptions(@fmincon,'algorithm','interior-point','display','iter-detailed',...
 'diagnostics','on','SpecifyObjectiveGradient',true,'UseParallel',true,...
-'MaxIterations',400,'OptimalityTolerance',1e-6);
+'MaxIterations',400,'OptimalityTolerance',1e-2);
 [optimized_coefs,fval,exitflag,output,lambda,grad,hess]=...
     fmincon(f, aberrations_start(:,3),[],[],[],[],lb,ub,[],options);
 aberrations_end =aberrations_start;
@@ -72,7 +74,7 @@ paraSim.show = true;disp('Zernike final crlb')
 [y0,grad0] = sum_crlb_at_z(aberrations_end(:,3),paraSim);
 paraSim.show = false;
 pupil_end = Zernike_construct_pupil(aberrations_end, paraSim);
-figure;imagesc(pupil_end);title('Zernike final pupil')
+figure;imagesc(pupil_end);title('Zernike final pupil');drawnow;
 %% load DM influence functions, project the Zernike pupil on DM
 % (xxx1875 corresponds to 1.5 NA, xxx1687.5 corresponds to 1.35NA)
 paraSim.dm_voltage = zeros(140,1);
@@ -100,7 +102,7 @@ subplot(1,3,3);
 imagesc(reconstruction-pupil);axis square;title('error');colorbar
 disp(['DM charges for each actuator']);
 disp(dm_coefs_ls');
-disp(['rse: ',num2str( 100* norm(reconstruction-pupil,2)/norm(pupil,2)),'%'] )
+disp(['rse: ',num2str( 100* norm(reconstruction-pupil,2)/norm(pupil,2)),'%'] );drawnow;
 %% compute and show the crlb, PSFs with the projected pupil
 dm_voltage_start = dm_coefs_ls;
 
@@ -112,7 +114,7 @@ paraSim.show = true;disp('DM start crlb')
 [y0,grad0] = realDM_sum_crlb_at_z(dm_voltage_start,paraSim);
 paraSim.show = false;
 pupil_start = DM_construct_pupil(dm_voltage_start, paraSim);
-figure;imagesc(pupil_start);title('DM start pupil')
+figure;imagesc(pupil_start);title('DM start pupil');drawnow;
 %% optimize the voltages of DM actuators to minimize average CRLB_3D (take hours to days)
 f = @(dm_voltage)realDM_sum_crlb_at_z(dm_voltage,paraSim);
 lb = -1*ones(140,1);
@@ -130,7 +132,7 @@ paraSim.show = true;disp('DM final crlb');
 [y0,grad0] = realDM_sum_crlb_at_z(dm_voltage_end,paraSim);
 paraSim.show = false;
 pupil_end = DM_construct_pupil(dm_voltage_end, paraSim);
-figure;imagesc(pupil_end);title('DM final pupil')
+figure;imagesc(pupil_end);title('DM final pupil');drawnow;
 %% output the control voltage(0,1) loaded on the DM
 % Membrane DMs, like the Boston Multi-DM, exhibit a quadratic response of 
 % the displacement of one actuator with respect to the applied voltage.
