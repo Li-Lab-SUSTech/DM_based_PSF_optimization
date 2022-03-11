@@ -146,6 +146,6 @@ u_final( u_final>1 ) = 1;
 
 v_final = sqrt((u_final+1)/2);
 
-fileID = fopen(['./output/',filesep,date,'-DMcontrol.txt'],'w');
+fileID = fopen([date,'-DMcontrol.txt'],'w');
 fprintf(fileID,'%12.8f\n',v_final);
 fclose(fileID);
