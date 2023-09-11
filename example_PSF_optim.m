@@ -75,6 +75,10 @@ paraSim.show = true;disp('Zernike final crlb')
 paraSim.show = false;
 pupil_end = Zernike_construct_pupil(aberrations_end, paraSim);
 figure;imagesc(pupil_end);title('Zernike final pupil');drawnow;
+
+% using least squared method to decompose the zernike-optimized pupil into
+% zernike coefs
+zernike_coefs_decomposed = zernike_coefs_ls(pupil_end, paraSim.aberrations)/2/pi*paraSim.lambda;
 %% load DM influence functions, project the Zernike pupil on DM
 % (xxx1875 corresponds to 1.5 NA, xxx1687.5 corresponds to 1.35NA)
 paraSim.dm_voltage = zeros(140,1);
